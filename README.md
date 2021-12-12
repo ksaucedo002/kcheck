@@ -31,9 +31,9 @@ Example
 
 | tag keys  | Descripcion|
 | ---- | ---------- |
-|`nonil`| la cadena no puede ser nula o vacia|
+|`nonil`| la cadena no puede ser nula o vacia, y los espacios vacíos no cuentas|
 | `nosp` | verifica que no hay espacios vacíos al inicio o al final de la cadena|
-| `stext`| stext, safe text; solo permite texto sin espacios al inicio ni al final, las palabras no pueden estar separadas por más de dos espacios, y solo están permitidos los caracteres que no están en esta lista:`!\"#$%&'()*+,./:;<=>?@[\\]^_}{~\|`, puede usarse para recibir nombre, apellidos entre otros
+| `stxt`| stext, safe text; solo permite texto sin espacios al inicio ni al final, las palabras no pueden estar separadas por más de dos espacios, y solo están permitidos los caracteres que no están en esta lista:`!\"#$%&'()*+,./:;<=>?@[\\]^_}{~\|`, puede usarse para recibir nombre, apellidos entre otros
 | `email` | correo electronico |
 | `url` | web url, http y https //aun no disponible|
 | `num` | verifica si todos los caracteres son numéricos |
@@ -41,6 +41,7 @@ Example
 | `len=:numbre` | la longitud de la cadena ingresada, debe ser igual a `:number` |
 | `max=:numbre` | la longitud maxima debe ser menor igual `:number` |
 | `min=:numbre` | la longitud minima debe ser mayor igual `:number` |
+| `rgx=:expression` |  permite pasar un expresión regular, ejem tagKey: `rgx=(^[0-9]{8}$)`|
 --------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------
 Tag example: `chk:"nonil num len=8"` `//la cadena no puede estar vacía, solo puede haber 8 caracteres numéricos`

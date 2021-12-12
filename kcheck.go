@@ -5,31 +5,49 @@ import (
 	"log"
 	"reflect"
 	"strings"
-
-	"github.com/ksaucedo002/kcheck/pkg/functions"
-	"github.com/ksaucedo002/kcheck/pkg/models"
 )
 
-var funcs functions.MapFuncs
+var funcs MapFuncs
 
-const TAG = "chk"
+var TAG = "chk"
 
 var ErrorKCHECK = errors.New("error unexpected")
 
 func init() {
-	funcs = make(functions.MapFuncs)
+	funcs = make(MapFuncs)
 	register()
 }
 func register() {
-	funcs["num"] = functions.Number
-	funcs["len"] = functions.Lenght
-	funcs["max"] = functions.MaxLenght
-	funcs["min"] = functions.MinLenght
+	funcs["nonil"] = noNilFunc
+	funcs["nosp"] = noSpacesStartAndEnd
+	funcs["stxt"] = sTextFunc
+	funcs["email"] = emailFunc
+	funcs["num"] = numberFunc
+	funcs["decimal"] = decimalFunc
+	funcs["len"] = lenghtFunc
+	funcs["max"] = maxLenghtFunc
+	funcs["min"] = minLenghtFunc
+	funcs["rgx"] = regularExpression
 }
 
 // OmitFields lista de campos que no se tomaran en cuanta al realizar la verificación
 type OmitFields []string
 
+/*
+	AddFunc permite registrar una nueva función personalizada, la cual será asociada
+	al tagKey indicado, si le takKey ya existe, este será remplazado, por ejemplo si
+	se usa el tagKey `num` este remplaza al existente. La función ValidFunc recibe
+	como primer parámetro un objeto con los datos del campo a verificar, incluye el
+	nombre y el valor, y como segundo parámetro recibe el valor después del `=` del
+	tagKey, por ejemplo el tag es `len` y este recibe un valor `len=10` el 10 es enviado
+	como segundo parámetro en formato string.
+	Nota: importante que el registro de nuevas funciona no se haga en tiempo de ejecución,
+	esto podría generar problemas de acceso por parte de las gorutines
+
+*/
+func AddFunc(tagKey string, f ValidFunc) {
+	funcs[tagKey] = f
+}
 func (of *OmitFields) isBan(field string) bool {
 	for _, v := range *of {
 		if v == field {
@@ -69,7 +87,7 @@ func ValidWithOmit(i interface{}, skips OmitFields) error {
 			if tagValues == "" || skips.isBan(rsf.Name) {
 				continue
 			}
-			atom := models.Atom{Name: SplitCamelCase(rsf.Name), Value: rv.String()}
+			atom := Atom{Name: SplitCamelCase(rsf.Name), Value: rv.String()}
 			if err := ValidTarget(tagValues, atom); err != nil {
 				return err
 			}
@@ -78,7 +96,7 @@ func ValidWithOmit(i interface{}, skips OmitFields) error {
 	return nil
 }
 
-func ValidTarget(tags string, atom models.Atom) error {
+func ValidTarget(tags string, atom Atom) error {
 	tags = StandardSpace(tags)
 	keys := strings.Split(tags, " ")
 	for _, key := range keys {
