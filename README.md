@@ -33,7 +33,7 @@ Example
 | ---- | ---------- |
 |`nonil`| la cadena no puede ser nula o vacia|
 | `nosp` | verifica que no hay espacios vacíos al inicio o al final de la cadena|
-| `stext`| stext, safe text; solo permite texto sin espacios al inicio ni al final, las palabras no pueden estar separadas por más de dos espacios, y solo están permitidos los caracteres que no están en esta lista:(!\"#$%&'()*+,./:;<=>?@[\\]^_{|}~), puede usarse para recibir nombre, apellidos entre otros
+| `stext`| stext, safe text; solo permite texto sin espacios al inicio ni al final, las palabras no pueden estar separadas por más de dos espacios, y solo están permitidos los caracteres que no están en esta lista:`!\"#$%&'()*+,./:;<=>?@[\\]^_}{~\|`, puede usarse para recibir nombre, apellidos entre otros
 | `email` | correo electronico |
 | `url` | web url, http y https //aun no disponible|
 | `num` | verifica si todos los caracteres son numéricos |
