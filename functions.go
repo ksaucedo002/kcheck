@@ -14,7 +14,7 @@ type MapFuncs map[string]ValidFunc
 func numberFunc(atom Atom, _ string) error {
 	valid, err := regexp.MatchString("^[0-9]+$", atom.Value)
 	if err != nil {
-		log.Printf("ERROR: functions.Number: %v\n", err)
+		log.Printf("ERROR: kcheck.Number: %v\n", err)
 		return ErrorKCHECK
 	}
 	if valid {
@@ -35,13 +35,25 @@ func decimalFunc(atom Atom, _ string) error {
 	message := "se esperaba un decimal, valor invalido `%s` en el campo `%s`"
 	return fmt.Errorf(message, atom.Value, atom.Name)
 }
+func sword(atom Atom, _ string) error {
+	valid, err := regexp.MatchString("^[0-9a-zA-Z_ñ]*$", atom.Value)
+	if err != nil {
+		log.Printf("ERROR: kcheck.sword: %v\n", err)
+		return ErrorKCHECK
+	}
+	if valid {
+		return nil
+	}
+	message := "en el campo `%s` solo están permitidos caracteres numéricos y alfabéticos"
+	return fmt.Errorf(message, atom.Name)
+}
 
 // calLens retorna el valor slen convertido en int, el numero de caracteres del value y error en caso exista
 // Utilizado por Lenght, MaxLenght, MinLenght
 func calLens(value string, slen string) (int, int, error) {
 	lenght, err := strconv.Atoi(slen)
 	if err != nil {
-		log.Printf("ERROR: functions.calLens: %v\n", err)
+		log.Printf("ERROR: kcheck.calLens: %v\n", err)
 		return 0, 0, ErrorKCHECK
 	}
 	valueLenght := len(value)
@@ -98,6 +110,7 @@ func emailFunc(atom Atom, _ string) error {
 func lenghtFunc(atom Atom, args string) error {
 	vLen, valueLenght, err := calLens(atom.Value, args)
 	if err != nil {
+		log.Printf("ERROR: kcheck.lenghtFunc field:`%s` args:`%s`: %v\n", atom.Name, args, err)
 		return err
 	}
 	if valueLenght == vLen {
@@ -109,6 +122,7 @@ func lenghtFunc(atom Atom, args string) error {
 func maxLenghtFunc(atom Atom, args string) error {
 	maxLen, valueLenght, err := calLens(atom.Value, args)
 	if err != nil {
+		log.Printf("ERROR: kcheck.maxLenghtFunc field:`%s` args:`%s`: %v\n", atom.Name, args, err)
 		return err
 	}
 	if valueLenght <= maxLen {
@@ -120,6 +134,7 @@ func maxLenghtFunc(atom Atom, args string) error {
 func minLenghtFunc(atom Atom, args string) error {
 	minLen, valueLenght, err := calLens(atom.Value, args)
 	if err != nil {
+		log.Printf("ERROR: kcheck.minLenghtFunc field:`%s` args:`%s`: %v\n", atom.Name, args, err)
 		return err
 	}
 	if valueLenght >= minLen {
