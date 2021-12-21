@@ -84,13 +84,21 @@ func noSpacesStartAndEnd(atom Atom, _ string) error {
 	return nil
 }
 func sTextFunc(atom Atom, args string) error {
+	denied := "!\"#$%&'()*+,./:;<=>?@[\\]^_}{~|"
 	if err := noSpacesStartAndEnd(atom, args); err != nil {
 		return err
 	}
 	match, _ := regexp.MatchString("( ){3}", atom.Value)
 	if match {
-		message := "el campo `%s` no puede tener palabras separadas por más de 2 espacios"
+		const message = "el campo `%s` no puede tener palabras separadas por más de 2 espacios"
 		return fmt.Errorf(message, atom.Name)
+	}
+	for _, c := range atom.Value {
+		if strings.ContainsRune(denied, c) {
+			const message = "el campo `%s` no puede contener ninguno de estos caracteres %s"
+			return fmt.Errorf(message, atom.Name, denied)
+
+		}
 	}
 	return nil
 }
