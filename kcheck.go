@@ -32,7 +32,7 @@ func register() {
 }
 
 // OmitFields lista de campos que no se tomaran en cuanta al realizar la verificación
-type OmitFields []string
+type Fields []string
 
 /*
 	AddFunc permite registrar una nueva función personalizada, la cual será asociada
@@ -49,7 +49,7 @@ type OmitFields []string
 func AddFunc(tagKey string, f ValidFunc) {
 	funcs[tagKey] = f
 }
-func (of *OmitFields) isBan(field string) bool {
+func (of *Fields) isContain(field string) bool {
 	for _, v := range *of {
 		if v == field {
 			return true
@@ -59,9 +59,15 @@ func (of *OmitFields) isBan(field string) bool {
 }
 
 func Valid(i interface{}) error {
-	return ValidWithOmit(i, OmitFields{})
+	return ValidWithOmit(i, Fields{})
 }
-func ValidWithOmit(i interface{}, skips OmitFields) error {
+func ValidWithSelect(i interface{}, selected Fields) error {
+	return valid(i, selected, false)
+}
+func ValidWithOmit(i interface{}, skips Fields) error {
+	return valid(i, skips, true)
+}
+func valid(i interface{}, filds Fields, isOmit bool) error {
 	var rValue reflect.Value
 	rType := reflect.TypeOf(i)
 	if rType == nil {
@@ -85,8 +91,14 @@ func ValidWithOmit(i interface{}, skips OmitFields) error {
 		rv := rValue.Field(i)
 		if rsf.Type.Kind() == reflect.String {
 			tagValues := rsf.Tag.Get(TAG)
-			if tagValues == "" || skips.isBan(rsf.Name) {
-				continue
+			if isOmit {
+				if tagValues == "" || filds.isContain(rsf.Name) {
+					continue
+				}
+			} else {
+				if !filds.isContain(rsf.Name) {
+					continue
+				}
 			}
 			atom := Atom{Name: SplitCamelCase(rsf.Name), Value: rv.String()}
 			if err := ValidTarget(tagValues, atom); err != nil {
