@@ -46,6 +46,26 @@ type Fields []string
 	esto podría generar problemas de acceso por parte de las gorutines
 
 */
+type TagParamExtractor interface {
+	GetTagValue(fieldName string) (value string, ok bool)
+}
+type paramExtractor struct {
+	rValue reflect.Value
+	rType  reflect.Type
+}
+
+func (ex *paramExtractor) GetTagValue(fieldName string) (value string, ok bool) {
+	rsf, found := ex.rType.FieldByName(fieldName)
+	if !found {
+		return
+	}
+	if rsf.Type.Kind() == reflect.String {
+		value = rsf.Tag.Get(TAG)
+		ok = true
+	}
+	return
+}
+
 func AddFunc(tagKey string, f ValidFunc) {
 	funcs[tagKey] = f
 }
@@ -67,12 +87,12 @@ func ValidWithSelect(i interface{}, selected Fields) error {
 func ValidWithOmit(i interface{}, skips Fields) error {
 	return valid(i, skips, true)
 }
-func valid(i interface{}, filds Fields, isOmit bool) error {
+func reflectValueAndType(i interface{}) (*reflect.Value, *reflect.Type, error) {
 	var rValue reflect.Value
 	rType := reflect.TypeOf(i)
 	if rType == nil {
 		log.Println("ERROR: nil value was received")
-		return ErrorKCHECK
+		return nil, nil, ErrorKCHECK
 	}
 	switch rType.Kind() {
 	case reflect.Struct:
@@ -83,11 +103,18 @@ func valid(i interface{}, filds Fields, isOmit bool) error {
 			rType = rType.Elem()
 		} else {
 			log.Printf("ERROR: a structure was type expected, invalid type `%v`\n", rType)
-			return ErrorKCHECK
+			return nil, nil, ErrorKCHECK
 		}
 	}
-	for i := 0; i < rType.NumField(); i++ {
-		rsf := rType.Field(i)
+	return &rValue, &rType, nil
+}
+func valid(i interface{}, filds Fields, isOmit bool) error {
+	rValue, rType, err := reflectValueAndType(i)
+	if err != nil {
+		return err
+	}
+	for i := 0; i < (*rType).NumField(); i++ {
+		rsf := (*rType).Field(i)
 		rv := rValue.Field(i)
 		if rsf.Type.Kind() == reflect.String {
 			tagValues := rsf.Tag.Get(TAG)
@@ -135,4 +162,11 @@ func ValidTarget(tags string, atom Atom) error {
 		}
 	}
 	return nil
+}
+func BuildTagParamExtractor(i interface{}) (TagParamExtractor, error) {
+	rValue, rType, err := reflectValueAndType(i)
+	if err != nil {
+		return nil, err
+	}
+	return &paramExtractor{rValue: *rValue, rType: *rType}, nil
 }
