@@ -78,14 +78,11 @@ func (of *Fields) isContain(field string) bool {
 	return false
 }
 
-func Valid(i interface{}) error {
-	return ValidWithOmit(i, Fields{})
-}
-func ValidWithSelect(i interface{}, selected Fields) error {
-	return valid(i, selected, false)
-}
-func ValidWithOmit(i interface{}, skips Fields) error {
+func Valid(i interface{}, skips ...string) error {
 	return valid(i, skips, true)
+}
+func ValidSelect(i interface{}, selecteds ...string) error {
+	return valid(i, selecteds, false)
 }
 func reflectValueAndType(i interface{}) (*reflect.Value, *reflect.Type, error) {
 	var rValue reflect.Value
